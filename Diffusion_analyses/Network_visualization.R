@@ -1,8 +1,8 @@
-install.packages("circlize")
 library(networkD3)
 library(circlize)
 library(igraph)
 
+# Playing with networks
 # Load connectome
 file <- "/Users/rafaelp/Desktop/localR/Network_analyses/Connectivity_networks/connectomes_to_analyse_sub_05_06_07/sub-DBS05/ses-postop12m/connectome/labeled_sub-DBS05_ses-postop12m_connectome.csv"
 mat <- as.matrix(
@@ -50,8 +50,7 @@ head(links)
 
 community <- cluster_louvain(
   g,
-  weights = E(g)$weight
-)
+  weights = E(g)$weight)
 
 nodes <- data.frame(
   name = V(g)$name,
@@ -80,8 +79,7 @@ keep <- rowSums(mat_plot) > 0
 
 mat_plot <- mat_plot[
   keep,
-  keep
-]
+  keep]
 
 chordDiagram(
   mat_plot,
@@ -117,7 +115,6 @@ dir.create(
   showWarnings = FALSE)
 
 subjects <- c("sub-DBS05", "sub-DBS06", "sub-DBS07")
-
 sessions <- c("ses-preop", "ses-postop01m", "ses-postop03m", "ses-postop06m", "ses-postop12m")
 
 for(subject in subjects){

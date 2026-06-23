@@ -82,8 +82,7 @@ data_long_lh <- data_subj_timepoint_lh %>%
   pivot_longer(
     cols = all_of(ROIS_aseg_lh),
     names_to = "Region",
-    values_to = "Volume"
-  )
+    values_to = "Volume")
 
 # Timepoint as a factor
 data_long_lh <- data_long_lh %>% mutate(Timepoint = factor(Timepoint,
@@ -99,8 +98,7 @@ data_mean_aseg_lh <- data_long_lh %>%
   group_by(Timepoint, Region) %>%
   summarise(
     MeanVolume = mean(Volume, na.rm = TRUE),
-    .groups = "drop"
-  )
+    .groups = "drop")
 
 # For the range of the values
 data_range_aseg_lh <- data_long_lh %>%
@@ -441,6 +439,8 @@ corr_res_01m_12m <- rcorr(
 
 corr_mat_01m_12m <- corr_res_01m_12m$r
 p_mat_01m_12m <- corr_res_01m_12m$P
+
+
 
 library(corrplot)
 
