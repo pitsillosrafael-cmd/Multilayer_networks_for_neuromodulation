@@ -4,7 +4,7 @@ library(networkD3)
 library(dplyr)
 
 base_dir <- "/Users/rafaelp/Desktop/localR/Network_analyses/Connectivity_networks/connectomes_to_analyse_sub_05_06_07"
-subjects <- c("sub-DBS05", "sub-DBS06", "sub-DBS07")
+subjects <- c("sub-DBS10", "sub-DBS12", "sub-DBS13", "sub-DBS14")
 sessions <- c("ses-preop", "ses-postop01m", "ses-postop03m", "ses-postop06m", "ses-postop12m")
 
 for(sub in subjects){

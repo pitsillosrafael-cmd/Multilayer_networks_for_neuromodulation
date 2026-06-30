@@ -327,12 +327,22 @@ corrplot(
   method = "color",
   type = "upper",
   order = "hclust",
+  
+  p.mat = p_mat_cortical_top,
+  insig = "label_sig",
+  sig.level = c(0.001, 0.01, 0.05),
+  pch.cex = 0.5,
+  pch.col = "black",
+  
   tl.col = "black",
   tl.cex = 0.6,
+  
   addCoef.col = NULL,
+  
   col = colorRampPalette(
     c("blue", "white", "red")
-  )(200))
+  )(200)
+)
 
 
 # Scatter plot cortical regions between preoperative and postoperative

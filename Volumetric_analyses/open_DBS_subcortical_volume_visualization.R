@@ -437,6 +437,7 @@ corr_res_01m_12m <- rcorr(
   as.matrix(pct_wide_01m_12m[, -1]),
   type = "pearson")
 
+corr_res_01m_12m$P
 corr_mat_01m_12m <- corr_res_01m_12m$r
 p_mat_01m_12m <- corr_res_01m_12m$P
 
@@ -445,17 +446,28 @@ p_mat_01m_12m <- corr_res_01m_12m$P
 library(corrplot)
 
 corrplot(
-  corr_res_01m_12m$r,
+  corr_mat_01m_12m,
   method = "color",
   type = "upper",
   order = "hclust",
-  addCoef.col = "black",
+  
+  addCoef.col = NULL,
+  number.cex = 0.5,
+  
+  p.mat = p_mat_01m_12m,
+  insig = "label_sig",
+  sig.level = c(0.001, 0.01, 0.05),
+  
+  pch.cex = 0.9,   # Smaller asterisks
+  pch.col = "black",
+  
   tl.col = "black",
   tl.cex = 0.7,
-  number.cex = 0.5,
+  
   col = colorRampPalette(
     c("blue", "white", "red")
   )(200))
+
 
 # t-test showing if they have significant difference in change percentage or they change similarly
 pairwise_res_percentage_of_change_01m_12m <- pairwise.t.test(

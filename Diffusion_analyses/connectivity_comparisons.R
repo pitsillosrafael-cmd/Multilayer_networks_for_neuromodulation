@@ -5,7 +5,9 @@ library(pheatmap)
 library(tidyverse)
 library(tidyr)
 library(ggplot2)
+library(ggpubr)
 
+# Delta postop12m - preop heatmaps
 # Example for subject 05
 base_dir <- "/Users/rafaelp/Desktop/localR/Network_analyses/Connectivity_networks/connectomes_to_analyse_sub_05_06_07"
 subject <- "sub-DBS05"
@@ -215,16 +217,165 @@ results
 
 
 # Local node metrics
+# Line plots for each
+base_dir <- "/Users/rafaelp/Desktop/localR/Network_analyses/Connectivity_networks/Network_metrics"
+subjects <- c("sub-DBS05", "sub-DBS06", "sub-DBS07", "sub-DBS08", "sub-DBS09", "sub-DBS10", 'sub-DBS12', "sub-DBS13", "sub-DBS14")
+
+for(subject in subjects){
+  
+  cat("Processing", subject, "...\n")
+  
+  metric_dir <- file.path(
+    base_dir,
+    subject)
+  
+  files <- list.files(
+    metric_dir,
+    pattern = "node_metrics.csv$",
+    full.names = TRUE)
+  
+  # Read all node metrics
+  node_metrics <- bind_rows(
+    lapply(files, function(f){
+      
+      df <- read.csv(f)
+      
+      df$Session <- sub(
+        ".*_(ses-[^_]+)_node_metrics\\.csv",
+        "\\1",
+        basename(f))
+      
+      df$Subject <- subject
+      
+      df}))
+  
+  # Order sessions
+  node_metrics$Session <- factor(
+    node_metrics$Session,
+    levels = c("ses-preop", "ses-postop01m",  "ses-postop03m", "ses-postop06m", "ses-postop12m"))
+  
+  # Top 15 hubs
+  top_hubs <- node_metrics %>%
+    group_by(Region) %>%
+    summarise(
+      MeanStrength = mean(Strength),
+      .groups = "drop") %>%
+    arrange(desc(MeanStrength)) %>%
+    slice(1:15)
+  
+  hub_data <- node_metrics %>%
+    filter(
+      Region %in% top_hubs$Region)
+  
+  # Plot
+  p <- ggplot(
+    hub_data,
+    aes(
+      x = Session,
+      y = Strength,
+      colour = Region,
+      group = Region)) +
+    geom_point(size = 3) +
+    geom_smooth(
+      method = "lm",
+      se = FALSE,
+      linewidth = 1.2) +
+    theme_bw(base_size = 14) +
+    labs(
+      title = paste(subject, "- Top 15 hub trends"),
+      x = "",
+      y = "Node strength")
+  
+  print(p)
+  
+  ggsave(
+    filename = file.path(
+      metric_dir,
+      paste0(subject, "_hub_trends.pdf")),
+    plot = p,
+    width = 10,
+    height = 7)}
+
+cat("Finished!\n")
 
 
+# Boxplots for the strength of all nodes from the 14 subjects
+base_dir <- "/Users/rafaelp/Desktop/localR/Network_analyses/Connectivity_networks/Network_metrics"
 
+subjects <- list.dirs(base_dir, recursive = FALSE, full.names = FALSE)
 
+all_nodes_boxplots <- data.frame()
 
-
-
-
-
-
+for (sub in subjects) {
+  files <- list.files(
+    file.path(base_dir, sub),
+    pattern = "node_metrics.csv",
+    full.names = TRUE)
+  
+  for(f in files) {
+    df <- read.csv(f)
+    df$Subject <- sub
+    df$Session <-sub(
+      ".*_(ses-[^_]+)_node_metrics\\.csv",
+      "\\1",
+      basename(f))
+    
+    all_nodes_boxplots <- bind_rows(all_nodes_boxplots, df)}}
+    
+    all_nodes_boxplots$Session <- factor(
+      all_nodes_boxplots$Session, levels = c( "ses-preop",
+                                              "ses-postop01m",
+                                              "ses-postop03m",
+                                              "ses-postop06m",
+                                              "ses-postop12m"))
+    
+    pdf(file.path(base_dir,
+        "Regional_NodeStrength_Boxplots.pdf"),
+      width = 8,
+      height = 6)
+    
+    for(region in unique(all_nodes_boxplots$Region)){
+      dat <- all_nodes_boxplots %>%
+        filter(Region == region)
+      p <- ggplot(
+        dat,
+        aes(
+          x = Session,
+          y = Strength,
+          fill = Session)) +
+        
+        geom_boxplot(
+          alpha = 0.7,
+          outlier.shape = NA) +
+        
+        geom_jitter(
+          aes(color = Subject),
+          width = 0.12,
+          size = 2) +
+        
+        stat_compare_means(
+          comparisons = comparisons,
+          method = "wilcox.test",
+          paired = TRUE,
+          label = "p.format") +
+        
+        theme_bw(base_size = 14) +
+        
+        labs(
+          title = region,
+          y = "Node strength",
+          x = ""
+        ) +
+        
+        theme(
+          legend.position = "none",
+          axis.text.x = element_text(
+            angle = 45,
+            hjust = 1))
+      
+      print(p)}
+    
+    dev.off()
 
 
 
