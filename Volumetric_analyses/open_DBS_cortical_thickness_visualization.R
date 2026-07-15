@@ -335,7 +335,7 @@ corrplot(
   pch.col = "black",
   
   tl.col = "black",
-  tl.cex = 0.6,
+  tl.cex = 0.8,
   
   addCoef.col = NULL,
   

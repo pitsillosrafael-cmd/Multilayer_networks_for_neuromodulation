@@ -1,5 +1,7 @@
-# Integrated networks
+# Volume and thickness (morphology) and node strength scaled (normalize) 
+# and named with fs_default to have them ready for the Integration
 library(dplyr)
+library(tidyr)
 
 # Read the CSV
 aparc_df <- read.csv(
@@ -231,3 +233,75 @@ write.csv(
   morphology,
   "/Users/rafaelp/Desktop/localR/Network_analyses/Volumetry/DBS_longitudinal_morphology_84regions_scaled.csv",
   row.names = FALSE)
+
+
+# Gather all Strength of nodes
+base_dir <- "/Users/rafaelp/Desktop/localR/Network_analyses/Connectivity_networks/Network_metrics"
+
+subjects <- list.dirs(base_dir, recursive = FALSE, full.names = TRUE)
+
+all_strength <- bind_rows(
+  lapply(subjects, function(subdir){
+    
+    files <- list.files(subdir, pattern = "node_metrics\\.csv$", full.names = TRUE)
+    
+    bind_rows(
+      lapply(files, function(f){
+        df <- read.csv(f)
+        subject <- sub("_ses.*", "", basename(f))
+        session <- sub(
+          ".*_(ses-[^_]+)_node_metrics\\.csv",
+          "\\1",
+          basename(f))
+        
+        df %>%
+          select(Region, Strength) %>%
+          pivot_wider(
+            names_from = Region,
+            values_from = Strength) %>%
+          mutate(Subjects = subject,
+            Timepoint = session,
+            .before = 1)}))}))
+    
+write.csv(
+  all_strength,
+  file.path(base_dir, "All_node_strength.csv"),
+  row.names = FALSE)
+
+
+# Scale the strengths
+strength <- read.csv(
+  "/Users/rafaelp/Desktop/localR/Network_analyses/Connectivity_networks/Network_metrics/All_node_strength.csv",
+  check.names = FALSE)
+
+# Min-max normalization
+norm01 <- function(x){
+  (x - min(x, na.rm = TRUE)) /
+    (max(x, na.rm = TRUE) - min(x, na.rm = TRUE))}
+
+# Columns to normalize
+region_cols <- setdiff(
+  names(strength),
+  c("Subjects", "Timepoint")
+)
+
+# Make sure they're numeric
+strength[region_cols] <- lapply(
+  strength[region_cols],
+  as.numeric
+)
+
+# Normalize each region
+strength[region_cols] <- lapply(
+  strength[region_cols],
+  norm01
+)
+
+# Save
+write.csv(
+  strength,
+  "C:/Users/rafaelp/Desktop/localR/Network_analyses/Connectivity_networks/Network_metrics/All_node_strength_scaled.csv",
+  row.names = FALSE
+)
+
+cat("Done!\n")
