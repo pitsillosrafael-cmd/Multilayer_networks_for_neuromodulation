@@ -2,6 +2,7 @@
 # and named with fs_default to have them ready for the Integration
 library(dplyr)
 library(tidyr)
+library(igraph)
 
 # Read the CSV
 aparc_df <- read.csv(
