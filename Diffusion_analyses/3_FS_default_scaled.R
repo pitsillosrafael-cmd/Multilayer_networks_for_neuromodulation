@@ -152,14 +152,12 @@ norm01 <- function(x){
 # Columns to normalize
 region_cols <- setdiff(
   names(aparc),
-  c("Subjects", "Timepoint")
-)
+  c("Subjects", "Timepoint"))
 
 # Normalize
 aparc[region_cols] <- lapply(
   aparc[region_cols],
-  norm01
-)
+  norm01)
 
 # Save
 write.csv(
@@ -181,8 +179,7 @@ norm01 <- function(x){
 # Columns to normalize
 region_cols <- setdiff(
   names(aseg),
-  c("Subjects", "Timepoint", "Age", "Sex", "ICV")
-)
+  c("Subjects", "Timepoint", "Age", "Sex", "ICV"))
 
 # Make sure they are numeric
 aseg[region_cols] <- lapply(aseg[region_cols], as.numeric)
@@ -270,6 +267,7 @@ write.csv(
   row.names = FALSE)
 
 
+# Moving to the DTI metrics
 # Scale the strengths
 strength <- read.csv(
   "/Users/rafaelp/Desktop/localR/Network_analyses/Connectivity_networks/Network_metrics/All_node_strength.csv",
@@ -283,26 +281,22 @@ norm01 <- function(x){
 # Columns to normalize
 region_cols <- setdiff(
   names(strength),
-  c("Subjects", "Timepoint")
-)
+  c("Subjects", "Timepoint"))
 
 # Make sure they're numeric
 strength[region_cols] <- lapply(
   strength[region_cols],
-  as.numeric
-)
+  as.numeric)
 
 # Normalize each region
 strength[region_cols] <- lapply(
   strength[region_cols],
-  norm01
-)
+  norm01)
 
 # Save
 write.csv(
   strength,
   "C:/Users/rafaelp/Desktop/localR/Network_analyses/Connectivity_networks/Network_metrics/All_node_strength_scaled.csv",
-  row.names = FALSE
-)
+  row.names = FALSE)
 
 cat("Done!\n")

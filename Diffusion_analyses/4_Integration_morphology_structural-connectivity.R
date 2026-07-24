@@ -78,17 +78,45 @@ multimodal_long$TimeNum <- c(0,1,3,6,12)[match(
   c("preop","postop01m","postop03m","postop06m","postop12m"))]
 
 # Output folder
-outdir <- "/Users/rafaelp/Desktop/localR/Network_analyses/Integrated/integrated_line_plots_2nd_attempt"
+outdir <- "/Users/rafaelp/Desktop/localR/Network_analyses/Integrated/integrated_line_plots_all_DTIs"
 dir.create(outdir, showWarnings = FALSE)
 
 regions <- unique(multimodal_long$Region)
+
+trend_results <- data.frame()
 
 for(reg in regions){
   
   df <- multimodal_long %>%
     filter(
       Region == reg,
+      Timepoint %in% c("preop", "postop01m", "postop03m", "postop06m", "postop12m"),
       !is.na(I))
+  
+  fit <- lm(I ~ TimeNum, data = df)
+  
+  slope <- coef(fit)[2]
+  r2 <- summary(fit)$r.squared
+  p_lm <- coef(summary(fit))[2, 4]
+  
+  sp <- cor.test(
+    df$TimeNum,
+    df$I,
+    method = "spearman",
+    exact = FALSE)
+  
+  rho <- unname(sp$estimate)
+  p_spear <- sp$p.value
+  
+  trend_results <- rbind(
+    trend_results,
+    data.frame(
+      Region = reg,
+      Slope = slope,
+      R2 = r2,
+      LM_p = p_lm,
+      Spearman_rho = rho,
+      Spearman_p = p_spear))
   
   if(nrow(df) < 3) next
   
@@ -114,18 +142,27 @@ for(reg in regions){
     
     labs(
       title = reg,
+      subtitle = paste0(
+        "Slope = ", round(slope, 3),
+        "   |   R² = ", round(r2, 2),
+        "   |   p(LM) = ", signif(p_lm, 2),
+        "\n",
+        "Spearman ρ = ", round(rho, 2),
+        "   |   p = ", signif(p_spear, 2)),
       x = "Session",
       y = "Integrated Index (I)") +
     
-    theme_ipsum()
+    theme_minimal()
   
   print(p)
   
   ggsave(
-    file.path(outdir, paste0(reg, ".pdf")),
-    p,
-    width = 6,
-    height = 5)}
+    file.path(outdir, paste0(reg, ".pdf")), p, width = 6, height = 5)}
+
+write.csv(trend_results,
+  file.path(outdir, "IntegratedIndex_Trends.csv"), row.names = FALSE)
+
+
 
 # Identify the 10 most increasing and most decreasing regions
 region_change <- multimodal_long %>%
