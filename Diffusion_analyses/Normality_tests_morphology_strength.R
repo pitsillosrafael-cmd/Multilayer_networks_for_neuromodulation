@@ -55,3 +55,21 @@ shapiro_I <- multimodal_long %>%
 
 shapiro_I
 sum(shapiro_I$p < 0.05, na.rm = TRUE)
+
+
+
+# Gather all shapiro in one df
+shapiro_summary <- shapiro_morphology %>%
+  select(Timepoint, Region, Morphology = p) %>%
+  left_join(
+    shapiro_strength %>%
+      select(Timepoint, Region, strength = p),
+    by = c("Timepoint", "Region")
+  ) %>%
+  left_join(shapiro_I %>%
+              select(Timepoint, Region, I = p),
+            by = c("Timepoint", "Region"))
+
+# Save all Pval from Shapiro
+write.csv(shapiro_summary, file = file.path(shapiro_dir, "Shapiro_summary.csv"),
+          row.names = FALSE)
