@@ -201,3 +201,41 @@ write.csv(
   top10_decreasing,
   file = paste0(outdir, "/Top10_decreasing_regions.csv"),
   row.names = FALSE)
+
+
+# Check correlation between integrated index across regions
+I_wide <- multimodal_long %>%
+  filter(!is.na(I)) %>%
+  select(Subjects, Timepoint, Region, I) %>%
+  pivot_wider(
+    names_from = Region,
+    values_from = I)
+
+# Calculate pval for every combination
+mat <- I_wide %>%
+  select(-Subjects, -Timepoint) %>%
+  as.matrix()
+
+corr <- rcorr(mat, type = "spearman")
+
+cor_mat <- corr$r
+p_mat   <- corr$P
+
+cor_mat <- I_wide %>%
+  select(-Subjects, -Timepoint) %>%
+  cor(use = "pairwise.complete.obs",
+    method = "spearman")
+
+pdf("IntegratedIndex_RegionalCorrelationMatrix.pdf",
+    width = 10,
+    height = 10)
+
+corrplot(
+  cor_mat,
+  method = "color",
+  type = "upper",
+  order = "hclust",
+  tl.cex = 0.5,
+  tl.col = "black")
+
+dev.off()
