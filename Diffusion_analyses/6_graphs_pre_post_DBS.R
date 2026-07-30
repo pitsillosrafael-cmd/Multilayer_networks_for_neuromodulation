@@ -1,8 +1,8 @@
-###############################################################################
+##################################################################################
 
-# Start building usual graphs with communities between the most connected nodes
+# Mean graph for each timepoint -with communities between the most connected nodes 
 
-###############################################################################
+##################################################################################
 library(igraph)
 library(tidygraph)
 library(ggraph)
@@ -288,4 +288,3 @@ ggraph(g_tbl_postop06m, layout = "stress") +
         plot.margin = margin(30, 30, 30, 30))
 
 theme_graph()
-
