@@ -2,23 +2,11 @@ library(tidyverse)
 library(parallel)
 
 # base directory
-library(tidyverse) library(parallel) 
 base_dir <- "/home/rafaelp/META-BRAIN/open-DBS/rawdata" 
 files <- list.files( base_dir, pattern = "_T1w\\.nii(\\.gz)?$", recursive = TRUE, full.names = TRUE ) 
 
-subjects <- c(
-  "sub-DBS05",
-  "sub-DBS06",
-  "sub-DBS07"
-)
-
-sessions <- c(
-  "ses-preop",
-  "ses-postop01m",
-  "ses-postop03m",
-  "ses-postop06m",
-  "ses-postop12m"
-)
+subjects <- c("sub-DBS05",  "sub-DBS06",  "sub-DBS07")
+sessions <- c("ses-preop", "ses-postop01m",  "ses-postop03m", "ses-postop06m", "ses-postop12m")
 
 
 # Step 1: Create longitudinal base templates
