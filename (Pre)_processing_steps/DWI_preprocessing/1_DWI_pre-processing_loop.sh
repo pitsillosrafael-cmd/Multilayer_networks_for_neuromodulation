@@ -15,8 +15,7 @@ sessions=(
   "ses-postop01m"
   "ses-postop03m"
   "ses-postop06m"
-  "ses-postop12m"
-)
+  "ses-postop12m")
 
 
 FS_DIR=/home/rafaelp/META-BRAIN/open-DBS/freesurfer_longitudinal_analyses
