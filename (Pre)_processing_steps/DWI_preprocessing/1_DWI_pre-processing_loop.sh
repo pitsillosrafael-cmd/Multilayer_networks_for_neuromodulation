@@ -4,21 +4,16 @@
 # SUBJECT
 # ========================
 
-SUB=sub-DBS14
+SUB=("sub-PD04", "sub-PD05", "sub-PD06", "sub-PD07", "sub-PD08")
 
 # ========================
 # ALL SESSIONS
 # ========================
 
-sessions=(
-  "ses-preop"
-  "ses-postop01m"
-  "ses-postop03m"
-  "ses-postop06m"
-  "ses-postop12m")
+sessions=("Baseline", "12m")
 
 
-FS_DIR=/home/rafaelp/META-BRAIN/open-DBS/freesurfer_longitudinal_analyses
+FS_DIR=/home/rafaelp/META-BRAIN/PPMI/freesurfer_longitudinal_analysis
 export SUBJECTS_DIR=$FS_DIR
 
 # ========================
@@ -31,7 +26,7 @@ for SES in "${sessions[@]}"; do
   echo "Processing $SUB $SES"
   echo "========================="
 
-  RAW=/home/rafaelp/META-BRAIN/open-DBS/ds005849_DBS/$SUB/$SES/dwi
+  RAW=/home/rafaelp/META-BRAIN/PPMI/nifti/DWI/$SUB/$SES/dwi
   OUT=/home/rafaelp/META-BRAIN/open-DBS/diffusion_analyses/$SUB/$SES
 
   SES_CLEAN=${SES#ses-}
