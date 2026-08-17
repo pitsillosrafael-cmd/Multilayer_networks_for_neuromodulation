@@ -127,7 +127,7 @@ for SES in "${sessions[@]}"; do
   -seed_dynamic $OUT/tracts/wm_fod.mif \
   -select 10M \
   -cutoff 0.06
-  - nthreads 12
+  -nthreads 12
 
   # ========================
   # 19. SIFT2
