@@ -9,16 +9,16 @@ library(reshape2)
 
 # ICV, sex and age correction in aparc (DSK) & aseg
 # Import the data
-aseg_stats <- read.csv("/home/rafaelp/META-BRAIN/open-DBS/DBS_longitudinal_aseg_volumes1_mac.csv", sep = ",")
-colnames(aseg_stats)
+aseg_stats_PD <- read.csv("/mnt/shared_data/rafaelp/META-BRAIN/PPMI/Network_analyses/Volumetry/PD_aseg_volume.csv")
+colnames(aseg_stats_PD)
 
 # Check if the estimated ICV is in normal range
-aseg_stats$EstimatedTotalIntraCranialVol
+aseg_stats_PD$EstimatedTotalIntraCranialVol
 # Check the distribution of regions
-hist(aseg_stats$Brain.Stem)
+hist(aseg_stats_PD$Right.Pallidum)
 
 # Fix the variables
-aseg_stats$Sex <- as.factor(aseg_stats$Sex)
+aseg_stats_PD$Sex <- as.factor(aseg_stats_PD$Sex)
 
 # Set the regions
 regions_aseg <- c(
@@ -27,72 +27,109 @@ regions_aseg <- c(
   "Left.Hippocampus", "Left.Amygdala", "Left.Accumbens.area",
   "Right.Cerebellum.Cortex", "Right.Thalamus", "Right.Caudate",
   "Right.Putamen", "Right.Pallidum", "Brain.Stem",
-  "Right.Hippocampus", "Right.Amygdala", "Right.Accumbens.area"
-)
+  "Right.Hippocampus", "Right.Amygdala", "Right.Accumbens.area")
 
 # For each brain region column convert cells into numeric values
-aseg_stats[regions_aseg] <- lapply(aseg_stats[regions_aseg], function(x) as.numeric(as.character(x)))
+aseg_stats_PD[regions_aseg] <- lapply(aseg_stats_PD[regions_aseg], function(x) as.numeric(as.character(x)))
 
 head(regions_aseg)
 length(regions_aseg)
 
 # Correct the regions
 # Forcing numeric correction
-aseg_stats_corrected <- data.frame(matrix(nrow = nrow(aseg_stats), ncol = 0))
+aseg_stats_PD_corrected <- data.frame(matrix(nrow = nrow(aseg_stats_PD), ncol = 0))
 
 for (r in regions_aseg) {
   model <- lm(as.formula(paste(r, "~ Age + Sex + EstimatedTotalIntraCranialVol")),
-              data = aseg_stats)
-  aseg_stats_corrected[[r]] <- resid(model)
-}
+              data = aseg_stats_PD)
+  aseg_stats_PD_corrected[[r]] <- resid(model)}
 
-aseg_stats_corrected_full <- cbind('Subjects' = aseg_stats$Subjects, aseg_stats_corrected)
+aseg_stats_corrected_PD_full <- cbind('Subjects' = aseg_stats_PD$Subjects, aseg_stats_PD_corrected)
 
 # Check the differences between residuals and pre-correction
-boxplot(aseg_stats_corrected$Left.Thalamus)
-boxplot(aseg_stats$Left.Thalamus)
+boxplot(aseg_stats_PD_corrected$Left.Thalamus)
+boxplot(aseg_stats_PD$Left.Thalamus)
 
-# Create z-scores for each time point
-aseg_stats_corrected_full$Timepoint <- sub("^.*_", "", aseg_stats_corrected_full$Subjects)
-table(aseg_stats_corrected_full$Timepoint)
 
-# Empty output for each time point
-aseg_corrected_z_time <- aseg_stats_corrected_full
 
-# Loop to get a z score for each timepoint 
-for (tp in unique(aseg_corrected_z_time$Timepoint)) {
-  
-  idx <- aseg_corrected_z_time$Timepoint == tp
-  
-  aseg_corrected_z_time[idx, regions_aseg] <-
-    scale(aseg_corrected_z_time[idx, regions_aseg])
-}
+# ICV ONLY correction (for boxplots + line plots in order to avoid residuals and negative values)
+# Create a separate copy of the original dataset
+aseg_stats_PD_only_ICV_corrected <- aseg_stats_PD
 
-# Sanity check 
-tapply(aseg_corrected_z_time$Left.Thalamus,
-       aseg_corrected_z_time$Timepoint,
-       mean)
+# Apply proportional ICV correction to the selected regions
+stopifnot(
+  all(is.finite(aseg_stats_PD[[icv_col]])),
+  all(aseg_stats_PD[[icv_col]] > 0))
+
+aseg_stats_PD_only_ICV_corrected[regions_aseg] <- lapply(
+  aseg_stats_PD[regions_aseg],
+  function(x) x / aseg_stats_PD[[icv_col]] * 100000)
+
+# Keep only Subject, Timepoint, and the selected ASEG regions
+PD_aseg_ICV_final <- aseg_stats_PD_only_ICV_corrected[
+  , c("Subject", "Timepoint", regions_aseg)]
+
+# Save the dataset
+write.csv(
+  PD_aseg_ICV_final,
+  "/mnt/shared_data/rafaelp/META-BRAIN/PPMI/Network_analyses/Volumetry/aparc_aseg_volumes/PD_aseg_volumes_ICV_only.csv",
+  row.names = FALSE)
+
+# Verify
+dim(PD_aseg_ICV_final)
+head(PD_aseg_ICV_final)
+
+# # Create z-scores for each time point
+# aseg_stats_corrected_full$Timepoint <- sub("^.*_", "", aseg_stats_corrected_full$Subjects)
+# table(aseg_stats_corrected_full$Timepoint)
+# 
+# # Empty output for each time point
+# aseg_corrected_z_time <- aseg_stats_corrected_full
+# 
+# # Loop to get a z score for each timepoint 
+# for (tp in unique(aseg_corrected_z_time$Timepoint)) {
+#   
+#   idx <- aseg_corrected_z_time$Timepoint == tp
+#   
+#   aseg_corrected_z_time[idx, regions_aseg] <-
+#     scale(aseg_corrected_z_time[idx, regions_aseg])
+# }
+# 
+# # Sanity check 
+# tapply(aseg_corrected_z_time$Left.Thalamus,
+#        aseg_corrected_z_time$Timepoint,
+#        mean)
+
+# Add subject, age and sex in aseg_stats_PD_corrected
+aseg_stats_PD_corrected <- cbind(
+  aseg_stats_PD[, c("Subject", "Timepoint", "Age", "Sex")],
+  aseg_stats_PD_corrected)
 
 
 # Set the variables
-tps <- c("preop", "postop01m", "postop03m", "postop06m", "postop12m")
+tps <- c("Baseline", "12m")
 
 # Set as factors in ordr to respect the order
-aseg_corrected_z_time$Timepoint <- factor(
-  aseg_corrected_z_time$Timepoint,
-  levels = tps
-)
+aseg_stats_PD_corrected$Timepoint <- factor(
+  aseg_stats_PD_corrected$Timepoint,
+  levels = tps)
+
+# Save the existing corrected dataset
+write.csv(
+  aseg_stats_PD_corrected,
+  file = "PD_aseg_volumes_age_sex_ICV_corrected.csv",
+  row.names = FALSE)
 
 
 # Check heatmap for each region in each subject and each tp
-for (tp in unique(aseg_corrected_z_time$Timepoint)) {
+for (tp in unique(aseg_stats_PD_corrected$Timepoint)) {
   
   # subset data for this timepoint
-  idx <- aseg_corrected_z_time$Timepoint == tp
-  data_tp <- aseg_corrected_z_time[idx, regions_aseg]
+  idx <- aseg_stats_PD_corrected$Timepoint == tp
+  data_tp <- aseg_stats_PD_corrected[idx, regions_aseg, drop = FALSE]
   
   # set rownames (subjects)
-  rownames(data_tp) <- aseg_corrected_z_time$Subjects[idx]
+  rownames(data_tp) <- aseg_stats_PD_corrected$Subject[idx]
   
   # plot heatmap
   pheatmap(data_tp,

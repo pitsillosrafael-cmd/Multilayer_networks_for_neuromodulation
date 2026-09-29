@@ -1,10 +1,10 @@
 #!/bin/bash
 export OMP_NUM_THREADS=4
-# ============================================================
+# ===========================================================
 # SUBJECTS
-# ============================================================
+# ===========================================================
 
-SUBJECTS=(sub-PD04 sub-PD05 sub-PD06 sub-PD07 sub-PD08)
+SUBJECTS=(sub-PD02 sub-PD03)
 
 # ============================================================
 # SESSIONS
@@ -16,8 +16,8 @@ SESSIONS=(Baseline 12m)
 # ROOT DIRECTORIES
 # ============================================================
 
-DWI_ROOT=/home/rafaelp/META-BRAIN/PPMI/nifti/DWI
-OUT_ROOT=/home/rafaelp/META-BRAIN/PPMI/diffusion_analyses
+DWI_ROOT=/mnt/shared_data/rafaelp/META-BRAIN/PPMI/nifti/DWI
+OUT_ROOT=/mnt/shared_data/rafaelp/META-BRAIN/PPMI/diffusion_analyses
 
 # ============================================================
 # LOOP SUBJECTS
@@ -31,26 +31,13 @@ for SUB in "${SUBJECTS[@]}"; do
 
     case "$SUB" in
 
-        sub-PD04)
-            READOUT=0.0431799
+        sub-PD02)
+            READOUT=0.0478288
             ;;
 
-        sub-PD05)
-            READOUT=0.0495301
+        sub-PD03)
+            READOUT=0.0478288
             ;;
-
-        sub-PD06)
-            READOUT=0.0412758
-            ;;
-
-        sub-PD07)
-            READOUT=0.0450851
-            ;;
-
-        sub-PD08)
-            READOUT=0.0444509
-            ;;
-
         *)
             echo "ERROR: No readout time defined for $SUB"
             continue

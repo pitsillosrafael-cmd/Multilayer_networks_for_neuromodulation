@@ -1,32 +1,46 @@
 #!/bin/bash
 
 # ========================
-# SUBJECT
+# SUBJECTS / SESSIONS
 # ========================
 
-SUB=sub-DBS14
+sessions=("12m" "Baseline")
 
-sessions=("ses-preop" "ses-postop01m" "ses-postop03m" "ses-postop06m" "ses-postop12m")
+BASE=/mnt/shared_data/rafaelp/META-BRAIN/PPMI/diffusion_analyses
 
-FS_DIR=/home/rafaelp/META-BRAIN/open-DBS/freesurfer_longitudinal_analyses
-export SUBJECTS_DIR=$FS_DIR
+FS_DIR=/mnt/shared_data/rafaelp/META-BRAIN/PPMI/freesurfer_longitudinal_analysis
+export SUBJECTS_DIR="$FS_DIR"
 
-BASE=/home/rafaelp/META-BRAIN/open-DBS/diffusion_analyses
 
 # ========================
 # LOOP
 # ========================
 
-for SES in "${sessions[@]}"; do
+for SUB_PATH in "$BASE"/sub-PD*; do
 
-  echo "========================="
-  echo "Processing $SUB $SES"
-  echo "========================="
+  SUB=$(basename "$SUB_PATH")
 
-  OUT=$BASE/$SUB/$SES
+  # Only PD04-PD14
+  if [[ "$SUB" == "sub-PD01" || "$SUB" == "sub-PD02" || "$SUB" == "sub-PD03" ]]; then
+    echo "Skipping $SUB"
+    continue
+  fi
 
-  SES_CLEAN=${SES#ses-}
-  FS_SUB=${SUB}_${SES_CLEAN}.long.${SUB//-}_base
+  for SES in "${sessions[@]}"; do
+
+    echo "========================="
+    echo "Processing $SUB $SES"
+    echo "========================="
+
+    OUT="$BASE/$SUB/$SES"
+
+    # ========================
+    # FreeSurfer longitudinal subject
+    # ========================
+
+    FS_SUB="${SUB}_${SES}_T1w.long.${SUB}_base"
+
+    echo "FreeSurfer subject: $FS_SUB"
 
   # ========================
   # CHECK FILES
@@ -113,8 +127,14 @@ for SES in "${sessions[@]}"; do
   #-assignment_radial_search 2 \
   #-force
 
-  echo "Completed $SUB $SES"
+    echo "Completed $SUB $SES"
 
   done
 
-  echo "ALL SESSIONS COMPLETED"
+  echo "Completed all sessions for $SUB"
+
+done
+
+echo "=========================================="
+echo "ALL SUBJECTS AND SESSIONS COMPLETED"
+echo "=========================================="

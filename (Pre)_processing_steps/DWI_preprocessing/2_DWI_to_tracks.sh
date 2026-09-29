@@ -1,33 +1,38 @@
 #!/bin/bash
 
 # SUBJECT
-
-SUB=sub-DBS14
-
 # Sessions
-sessions=("ses-preop" "ses-postop01m" "ses-postop03m" "ses-postop06m" "ses-postop12m")
-BASE=/home/rafaelp/META-BRAIN/open-DBS/diffusion_analyses
+sessions=("12m" "Baseline")
+BASE=/mnt/shared_data/rafaelp/META-BRAIN/PPMI/diffusion_analyses
 
-# Create a LOOP to get all scans from a single subject
+for SUB_PATH in "$BASE"/sub-PD*; do
 
-for SES in "${sessions[@]}"; do
+  SUB=$(basename "$SUB_PATH")
 
-  echo "========================="
-  echo "Processing $SUB $SES"
-  echo "========================="
-
-  OUT=$BASE/$SUB/$SES
-  SES_CLEAN=${SES#ses-}
-  FS_SUB=${SUB}_${SES_CLEAN}.long.${SUB//-}_base
-
-  # ========================
-  # CHECK INPUT EXISTS
-  # ========================
-
-  if [ ! -f "$OUT/preproc/dwi_preproc.mif" ]; then
-    echo "Skipping $SES (no preprocessed DWI)"
+  # Skip PD02 and PD03
+  if [[ "$SUB" == "sub-PD01" || "$SUB" == "sub-PD02" || "$SUB" == "sub-PD03" ]]; then
+    echo "Skipping $SUB"
     continue
   fi
+
+  for SES in "${sessions[@]}"; do
+
+    echo "========================="
+    echo "Processing $SUB $SES"
+    echo "========================="
+
+    OUT=$BASE/$SUB/$SES
+
+    # FreeSurfer longitudinal subject
+        FS_SUB="${SUB}_${SES}_T1w.long.${SUB}_base"
+
+        echo "FreeSurfer subject: $FS_SUB"
+
+    # CHECK INPUT EXISTS
+    if [ ! -f "$OUT/preproc/dwi_preproc.mif" ]; then
+      echo "Skipping $SUB $SES (no preprocessed DWI)"
+      continue
+    fi
 
   # CREATE TRACT FOLDER
   mkdir -p $OUT/tracts
@@ -126,7 +131,7 @@ for SES in "${sessions[@]}"; do
   -crop_at_gmwmi \
   -seed_dynamic $OUT/tracts/wm_fod.mif \
   -select 10M \
-  -cutoff 0.06
+  -cutoff 0.06 \
   -nthreads 12
 
   # ========================
@@ -142,6 +147,7 @@ for SES in "${sessions[@]}"; do
 
   echo "Completed $SUB $SES"
 
+done
 done
 
 echo "ALL SESSIONS COMPLETED"
